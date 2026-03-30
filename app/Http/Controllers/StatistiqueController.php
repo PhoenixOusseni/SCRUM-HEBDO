@@ -16,33 +16,51 @@ class StatistiqueController extends Controller
         $employes = Employe::where('actif', true)->orderBy('ordre')->get();
 
         // Filtres
-        $semaineId  = $request->input('semaine_id');
-        $employeId  = $request->input('employe_id');
+        $mode         = $request->input('mode'); // 'unique' | 'plage' | null (premier chargement)
+        $semaineId    = $request->input('semaine_id');
+        $employeId    = $request->input('employe_id');
         $periodeDebut = $request->input('periode_debut'); // semaine_id de début
         $periodeFin   = $request->input('periode_fin');   // semaine_id de fin
 
-        // Mode : semaine unique ou plage
-        $modeUnique = $semaineId !== null;
+        // Mode : semaine unique ou plage (piloté par le radio button)
+        $modeUnique = ($mode !== 'plage');
 
         // ── Requête de base ────────────────────────────────────────────────
         $query = Activite::query()
             ->where('type', 'courante')
             ->whereNotNull('statut');
 
-        if ($modeUnique && $semaineId) {
-            $query->where('semaine_id', $semaineId);
-        } elseif ($periodeDebut && $periodeFin) {
-            $query->whereBetween('semaine_id', [(int)$periodeDebut, (int)$periodeFin]);
-        } elseif ($periodeDebut) {
-            $query->where('semaine_id', '>=', (int)$periodeDebut);
-        } elseif ($periodeFin) {
-            $query->where('semaine_id', '<=', (int)$periodeFin);
+        if ($modeUnique) {
+            if ($semaineId) {
+                $query->where('semaine_id', $semaineId);
+            } else {
+                // Par défaut : semaine courante
+                $semaineCourante = Semaine::courante();
+                $semaineId = $semaineCourante->id;
+                $query->where('semaine_id', $semaineId);
+            }
         } else {
-            // Par défaut : semaine courante
-            $semaineCourante = Semaine::courante();
-            $semaineId = $semaineCourante->id;
-            $query->where('semaine_id', $semaineId);
-            $modeUnique = true;
+            // Mode plage : filtrer par dates pour éviter les problèmes d'IDs non-séquentiels
+            if ($periodeDebut && $periodeFin) {
+                $debut = Semaine::find((int)$periodeDebut)?->date_debut;
+                $fin   = Semaine::find((int)$periodeFin)?->date_fin;
+                if ($debut && $fin) {
+                    $query->whereHas('semaine', fn($q) => $q->whereBetween('date_debut', [$debut, $fin]));
+                } else {
+                    $query->whereIn('semaine_id', Semaine::whereBetween('id', [(int)$periodeDebut, (int)$periodeFin])->pluck('id'));
+                }
+            } elseif ($periodeDebut) {
+                $debut = Semaine::find((int)$periodeDebut)?->date_debut;
+                if ($debut) {
+                    $query->whereHas('semaine', fn($q) => $q->where('date_debut', '>=', $debut));
+                }
+            } elseif ($periodeFin) {
+                $fin = Semaine::find((int)$periodeFin)?->date_fin;
+                if ($fin) {
+                    $query->whereHas('semaine', fn($q) => $q->where('date_fin', '<=', $fin));
+                }
+            }
+            // Si aucune plage définie, on retourne toutes les activités (pas de filtre semaine)
         }
 
         if ($employeId) {

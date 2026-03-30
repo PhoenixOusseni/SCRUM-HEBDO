@@ -37,9 +37,9 @@
                         <i class="fas fa-forward me-2"></i>Créer semaine suivante
                     </button>
                 </form>
-                <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalNouvelleSemaine">
+                {{-- <button class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalNouvelleSemaine">
                     <i class="fas fa-plus me-2"></i>Nouvelle semaine
-                </button>
+                </button> --}}
             @endauth
         </div>
     </div>
@@ -347,7 +347,7 @@
     </div>
 
     {{-- Modal : Nouvelle semaine --}}
-    <div class="modal fade" id="modalNouvelleSemaine" tabindex="-1">
+    {{-- <div class="modal fade" id="modalNouvelleSemaine" tabindex="-1">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
@@ -367,7 +367,7 @@
                 </form>
             </div>
         </div>
-    </div>
+    </div> --}}
 
 @endsection
 

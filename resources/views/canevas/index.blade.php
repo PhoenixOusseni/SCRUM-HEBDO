@@ -6,11 +6,11 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h5 class="mb-0"><i class="fas fa-list text-primary me-2"></i>Historique des semaines</h5>
-        @auth
+        {{-- @auth
             <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalNouvelleSemaine">
                 <i class="fas fa-calendar-plus me-1"></i>Nouvelle semaine
             </button>
-        @endauth
+        @endauth --}}
     </div>
 
     <div class="card shadow-sm">
@@ -58,7 +58,7 @@
     </div>
 
     {{-- Modal : Nouvelle semaine --}}
-    <div class="modal fade" id="modalNouvelleSemaine" tabindex="-1">
+    {{-- <div class="modal fade" id="modalNouvelleSemaine" tabindex="-1">
         <div class="modal-dialog modal-sm">
             <div class="modal-content">
                 <div class="modal-header bg-primary text-white">
@@ -78,5 +78,5 @@
                 </form>
             </div>
         </div>
-    </div>
+    </div> --}}
 @endsection
