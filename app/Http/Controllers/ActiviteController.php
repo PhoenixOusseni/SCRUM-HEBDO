@@ -32,7 +32,11 @@ class ActiviteController extends Controller
                 $statut = $statuts[$i] ?? null;
                 $raison = $raisons[$i] ?? null;
                 if (! empty($statut) && $statut !== 'fait' && empty($raison)) {
-                    return back()->withErrors(['raison' => 'La précision est obligatoire si l\'activité n\'est pas terminée (ligne ' . ($i + 1) . ').'])->withInput();
+                    $message = 'La précision est obligatoire si l\'activité n\'est pas terminée (ligne ' . ($i + 1) . ').';
+                    if ($request->wantsJson()) {
+                        return response()->json(['message' => $message, 'errors' => ['raison' => [$message]]], 422);
+                    }
+                    return back()->withErrors(['raison' => $message])->withInput();
                 }
             }
         }
@@ -55,7 +59,13 @@ class ActiviteController extends Controller
         }
 
         $count = count($descriptions);
-        return redirect()->back()->with('success', $count > 1 ? "{$count} activités ajoutées." : 'Activité ajoutée avec succès.');
+        $message = $count > 1 ? "{$count} activités ajoutées." : 'Activité ajoutée avec succès.';
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => $message]);
+        }
+
+        return redirect()->back()->with('success', $message);
     }
 
     public function update(Request $request, Activite $activite)
@@ -72,7 +82,11 @@ class ActiviteController extends Controller
             $validated['statut'] !== 'fait' &&
             empty($validated['raison'])
         ) {
-            return back()->withErrors(['raison' => 'La précision est obligatoire si l\'activité n\'est pas terminée.'])->withInput();
+            $message = 'La précision est obligatoire si l\'activité n\'est pas terminée.';
+            if ($request->wantsJson()) {
+                return response()->json(['message' => $message, 'errors' => ['raison' => [$message]]], 422);
+            }
+            return back()->withErrors(['raison' => $message])->withInput();
         }
 
         if ($activite->type === 'suivante') {
@@ -81,6 +95,10 @@ class ActiviteController extends Controller
         }
 
         $activite->update($validated);
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Activité mise à jour.']);
+        }
 
         return redirect()->back()->with('success', 'Activité mise à jour.');
     }
@@ -98,12 +116,21 @@ class ActiviteController extends Controller
             $activite->update(['statut' => $validated['statut']]);
         }
 
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Statut mis à jour.']);
+        }
+
         return redirect()->back();
     }
 
-    public function destroy(Activite $activite)
+    public function destroy(Request $request, Activite $activite)
     {
         $activite->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Activité supprimée.']);
+        }
+
         return redirect()->back()->with('success', 'Activité supprimée.');
     }
 }

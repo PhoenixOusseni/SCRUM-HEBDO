@@ -137,6 +137,10 @@ class SemaineController extends Controller
             ['obstacles' => $validated['obstacles'], 'updated_at' => now(), 'created_at' => now()]
         );
 
+        if ($request->wantsJson()) {
+            return response()->json(['message' => 'Obstacles mis à jour.']);
+        }
+
         return redirect()->back()->with('success', 'Obstacles mis à jour.');
     }
 }

@@ -5,19 +5,19 @@
 @section('styles')
 <style>
     .stat-card {
-        border-radius: 12px;
+        border-radius: var(--radius);
         border: none;
-        box-shadow: 0 2px 8px rgba(0,0,0,.08);
+        box-shadow: var(--shadow);
     }
     .pct-badge {
         font-size: 1.6rem;
         font-weight: 700;
         line-height: 1;
     }
-    
+
     .progress { height: 14px; border-radius: 8px; }
     .chart-container { position: relative; }
-    .employe-card { border-left: 4px solid #1a3c5e; }
+    .employe-card { border-left: 4px solid var(--c-navy); }
     .legend-dot {
         display: inline-block;
         width: 12px; height: 12px;
@@ -26,19 +26,19 @@
     }
     .filter-bar {
         background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 1px 6px rgba(0,0,0,.07);
-        padding: 14px 18px;
-        margin-bottom: 20px;
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        padding: 16px 20px;
+        margin-bottom: 24px;
     }
-    .global-kpi { background: linear-gradient(135deg, #1a3c5e 0%, #2980b9 100%); }
+    .global-kpi { background: linear-gradient(135deg, var(--c-navy) 0%, var(--c-navy-light) 100%); }
 </style>
 @endsection
 
 @section('content')
 
 {{-- ── Titre ──────────────────────────────────────────────────────────────── --}}
-<div class="d-flex align-items-center mb-3 gap-2">
+<div class="d-flex align-items-center mb-4 gap-2">
     <i class="fas fa-chart-bar fa-lg text-primary"></i>
     <h5 class="mb-0 fw-bold">Statistiques d'exécution des activités</h5>
 </div>

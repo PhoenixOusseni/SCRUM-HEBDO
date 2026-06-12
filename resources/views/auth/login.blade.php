@@ -7,9 +7,18 @@
     <title>Connexion – SCRUM Hebdo</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --c-navy: #1a3c5e;
+            --c-navy-dark: #0f2740;
+            --c-orange: #e65c00;
+            --c-orange-light: #ffb347;
+        }
+
         body {
-            background: linear-gradient(135deg, #e65c00, #ffb347);
+            font-family: 'Inter', system-ui, -apple-system, "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, var(--c-navy), var(--c-navy-dark));
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -21,49 +30,51 @@
             max-width: 420px;
             border: none;
             border-radius: 16px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
         }
 
         .login-header {
-            background: linear-gradient(to right, #e65c00, #ffb347);
-            border-radius: 16px 16px 0 0;
-            padding: 2rem;
+            background: linear-gradient(110deg, var(--c-orange), var(--c-orange-light));
+            padding: 2.25rem 2rem;
             text-align: center;
         }
 
         .login-header h1 {
             font-size: 1.4rem;
-            font-weight: 700;
-            color: #000;
+            font-weight: 800;
+            color: #1a1a1a;
             margin: 0;
         }
 
         .badge-app {
-            background: rgba(0, 0, 0, 0.15);
-            color: #000;
+            background: rgba(0, 0, 0, 0.18);
+            color: #fff;
+            font-weight: 600;
             font-size: 0.75rem;
             padding: 3px 10px;
             border-radius: 20px;
-            margin-top: 4px;
+            margin-top: 6px;
             display: inline-block;
         }
 
         .btn {
             border-radius: 25px;
+            font-weight: 600;
         }
 
         .btn-login {
-            background: linear-gradient(to right, #e65c00, #ffb347);
+            background: var(--c-navy);
             border: none;
-            color: #000;
-            font-weight: 600;
+            color: #fff;
+            font-weight: 700;
             width: 100%;
             padding: 10px;
         }
 
         .btn-login:hover {
-            opacity: 0.9;
-            color: #000;
+            background: var(--c-navy-dark);
+            color: #fff;
         }
     </style>
 </head>

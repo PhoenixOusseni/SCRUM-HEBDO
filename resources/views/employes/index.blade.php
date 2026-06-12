@@ -4,16 +4,16 @@
 
 @section('content')
 
-<div class="d-flex justify-content-between align-items-center mb-3">
+<div class="d-flex justify-content-between align-items-center mb-4">
     <h5 class="mb-0"><i class="fas fa-users text-primary me-2"></i>Équipe AUXFIN BF</h5>
     <a href="{{ route('employes.create') }}" class="btn btn-primary btn-sm">
         <i class="fas fa-user-plus me-1"></i>Ajouter un employé
     </a>
 </div>
 
-<div class="card shadow-sm">
+<div class="card">
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
+        <table class="table table-hover mb-0 align-middle">
             <thead class="table-dark">
                 <tr>
                     <th style="width:50px">#</th>

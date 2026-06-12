@@ -5,10 +5,10 @@
 @section('content')
 
     {{-- ── En-tête semaine ──────────────────────────────────────────────── --}}
-    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2 no-print">
+    <div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2 no-print">
         <div class="d-flex align-items-center gap-2">
             @if ($previousSemaine)
-                <a href="{{ route('semaines.show', $previousSemaine) }}" class="btn btn-warning btn-sm">
+                <a href="{{ route('semaines.show', $previousSemaine) }}" class="btn btn-outline-primary btn-sm">
                     <i class="fas fa-chevron-left"></i> Semaine précédente
                 </a>
             @endif
@@ -19,20 +19,20 @@
             </h5>
 
             @if ($nextSemaine)
-                <a href="{{ route('semaines.show', $nextSemaine) }}" class="btn btn-warning btn-sm">
+                <a href="{{ route('semaines.show', $nextSemaine) }}" class="btn btn-outline-primary btn-sm">
                     Semaine suivante <i class="fas fa-chevron-right"></i>
                 </a>
             @endif
         </div>
 
         <div class="d-flex gap-2">
-            <button onclick="window.print()" class="btn btn-success btn-sm">
+            <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
                 <i class="fas fa-print me-2"></i>Imprimer
             </button>
             @auth
                 <form method="POST" action="{{ route('semaines.creerSuivante', $semaine) }}" class="d-inline">
                     @csrf
-                    <button type="submit" class="btn btn-warning btn-sm"
+                    <button type="submit" class="btn btn-primary btn-sm"
                         onclick="return confirm('Créer la semaine suivante avec les activités planifiées ?')">
                         <i class="fas fa-forward me-2"></i>Créer semaine suivante
                     </button>
@@ -45,7 +45,7 @@
     </div>
 
     {{-- ── Table canevas ────────────────────────────────────────────────── --}}
-    <div class="table-responsive shadow-sm rounded">
+    <div class="table-responsive canevas-wrapper">
         <table class="table table-bordered canevas-table mb-0 w-100">
             <thead>
                 <tr>
@@ -115,7 +115,8 @@
                                             <i class="fas fa-pencil-alt"></i>
                                         </button>
                                         <form method="POST" action="{{ route('activites.destroy', $courante) }}"
-                                            class="d-inline" onsubmit="return confirm('Supprimer cette activité ?')">
+                                            class="d-inline"
+                                            onsubmit="event.preventDefault(); if (confirm('Supprimer cette activité ?')) ajaxSubmit(this); return false;">
                                             @csrf @method('DELETE')
                                             <button class="btn btn-xs btn-outline-danger" title="Supprimer">
                                                 <i class="fas fa-trash"></i>
@@ -128,11 +129,12 @@
                             {{-- Statut (dropdown auto-submit) --}}
                             <td class="text-center align-middle" style="min-width:105px">
                                 @if ($courante)
-                                    <form method="POST" action="{{ route('activites.statut', $courante) }}">
+                                    <form method="POST" action="{{ route('activites.statut', $courante) }}"
+                                        onsubmit="event.preventDefault(); ajaxSubmit(this); return false;">
                                         @csrf @method('PATCH')
                                         <select name="statut" class="statut-select"
                                             data-color="{{ $courante->statut ? $courante->statutColor() : '#6c757d' }}"
-                                            onchange="this.form.submit()">
+                                            onchange="applyStatutColor(this, (this.options[this.selectedIndex].dataset.color || '#6c757d')); this.form.requestSubmit()">
                                             <option value="">– statut –</option>
                                             @foreach (\App\Models\Activite::STATUTS as $val => $label)
                                                 <option value="{{ $val }}"
@@ -179,7 +181,8 @@
                                             <i class="fas fa-pencil-alt"></i>
                                         </button>
                                         <form method="POST" action="{{ route('activites.destroy', $suivante) }}"
-                                            class="d-inline" onsubmit="return confirm('Supprimer cette activité ?')">
+                                            class="d-inline"
+                                            onsubmit="event.preventDefault(); if (confirm('Supprimer cette activité ?')) ajaxSubmit(this); return false;">
                                             @csrf @method('DELETE')
                                             <button class="btn btn-xs btn-outline-danger" title="Supprimer">
                                                 <i class="fas fa-trash"></i>
@@ -236,6 +239,7 @@
                     <input type="hidden" name="semaine_id" value="{{ $semaine->id }}">
                     <input type="hidden" name="type" id="ajoutType">
                     <div class="modal-body" style="max-height:65vh;overflow-y:auto">
+                        <div id="ajoutErrors" class="alert alert-danger d-none"></div>
                         <div id="ajoutLignesContainer"></div>
                         <div class="d-flex justify-content-end">
                             <button type="button" id="btnAjoutLigne" class="btn btn-outline-primary btn-sm mt-1">
@@ -266,6 +270,7 @@
                     <input type="hidden" name="_method" value="PUT">
                     <input type="hidden" name="type" id="activiteType">
                     <div class="modal-body">
+                        <div id="activiteErrors" class="alert alert-danger d-none"></div>
                         <div class="mb-3">
                             <label class="form-label fw-semibold">Description <span class="text-danger">*</span></label>
                             <textarea name="description" id="activiteDescription" class="form-control" rows="3" required
@@ -334,6 +339,7 @@
                     <input type="hidden" name="description" id="raisonDescription">
                     <input type="hidden" name="statut" id="raisonStatut">
                     <div class="modal-body">
+                        <div id="raisonErrors" class="alert alert-danger d-none"></div>
                         <label class="form-label small fw-semibold">Taux d'avancement ou raison de non-réalisation</label>
                         <textarea name="raison" id="raisonTexte" class="form-control" rows="3"
                             placeholder="Ex : 50% de mise en œuvre ; En attente de validation…"></textarea>
@@ -374,18 +380,134 @@
 @section('scripts')
     <script>
         // ── Statut select colors ────────────────────────────────────────────
-        document.querySelectorAll('.statut-select').forEach(function(sel) {
-            applyStatutColor(sel, sel.dataset.color);
-            sel.addEventListener('change', function() {
-                const opt = sel.options[sel.selectedIndex];
-                applyStatutColor(sel, opt.dataset.color || '#6c757d');
-            });
-        });
-
         function applyStatutColor(sel, color) {
             if (!color) color = '#6c757d';
             sel.style.backgroundColor = color;
             sel.style.color = '#fff';
+        }
+
+        function initStatutSelects() {
+            document.querySelectorAll('.statut-select').forEach(function(sel) {
+                applyStatutColor(sel, sel.dataset.color);
+            });
+        }
+
+        initStatutSelects();
+
+        // ── Notifications (toast) ────────────────────────────────────────────
+        function showToast(message, type = 'success') {
+            let container = document.getElementById('toastContainer');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'toast-container position-fixed bottom-0 end-0 p-3 no-print';
+                container.style.zIndex = 1080;
+                document.body.appendChild(container);
+            }
+
+            const toastEl = document.createElement('div');
+            toastEl.className = `toast align-items-center text-white bg-${type} border-0`;
+            toastEl.setAttribute('role', 'alert');
+            toastEl.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>`;
+            container.appendChild(toastEl);
+
+            const toast = new bootstrap.Toast(toastEl, { delay: 3000 });
+            toast.show();
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+        }
+
+        // ── Erreurs de validation dans les modals ───────────────────────────
+        function showFormErrors(errorBoxId, errors) {
+            const box = document.getElementById(errorBoxId);
+            if (!box) return;
+            const messages = Object.values(errors || {}).flat();
+            if (messages.length) {
+                box.innerHTML = messages.map(m => `<div>${m}</div>`).join('');
+                box.classList.remove('d-none');
+            } else {
+                box.innerHTML = '';
+                box.classList.add('d-none');
+            }
+        }
+
+        function clearFormErrors(errorBoxId) {
+            const box = document.getElementById(errorBoxId);
+            if (box) {
+                box.innerHTML = '';
+                box.classList.add('d-none');
+            }
+        }
+
+        // ── Rafraîchissement du tableau sans rechargement de page ───────────
+        async function refreshCanevas() {
+            try {
+                const response = await fetch(window.location.href, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    credentials: 'same-origin',
+                });
+                const html = await response.text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+
+                const newTbody = doc.querySelector('.canevas-table tbody');
+                const currentTbody = document.querySelector('.canevas-table tbody');
+                if (newTbody && currentTbody) {
+                    currentTbody.innerHTML = newTbody.innerHTML;
+                    initStatutSelects();
+                }
+            } catch (err) {
+                // En cas d'échec réseau, le tableau reste affiché tel quel.
+            }
+        }
+
+        // ── Soumission AJAX générique (store / update / statut / delete / obstacles) ──
+        async function ajaxSubmit(form, { errorBoxId = null, onSuccess = null } = {}) {
+            if (errorBoxId) clearFormErrors(errorBoxId);
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: new FormData(form),
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                    },
+                    credentials: 'same-origin',
+                });
+
+                const data = await response.json().catch(() => ({}));
+
+                if (response.status === 422) {
+                    const messages = Object.values(data.errors || {}).flat();
+                    if (errorBoxId) {
+                        showFormErrors(errorBoxId, data.errors || {});
+                    } else {
+                        showToast(messages.join(' ') || data.message || 'Données invalides.', 'danger');
+                    }
+                    return;
+                }
+
+                if (!response.ok) {
+                    showToast('Une erreur est survenue.', 'danger');
+                    return;
+                }
+
+                if (onSuccess) onSuccess();
+
+                await refreshCanevas();
+
+                showToast(data.message || 'Enregistré avec succès.', 'success');
+            } catch (err) {
+                showToast('Erreur de connexion.', 'danger');
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
         }
 
         // ── Modal Ajout multi-lignes ────────────────────────────────────────
@@ -507,5 +629,47 @@
             document.getElementById('raisonTexte').value = raison || '';
             new bootstrap.Modal(document.getElementById('modalRaison')).show();
         }
+
+        // ── Soumissions AJAX des formulaires des modals ─────────────────────
+        document.getElementById('formAjout').addEventListener('submit', function(e) {
+            e.preventDefault();
+            ajaxSubmit(this, {
+                errorBoxId: 'ajoutErrors',
+                onSuccess: () => {
+                    bootstrap.Modal.getInstance(document.getElementById('modalAjout'))?.hide();
+                    this.reset();
+                    document.getElementById('ajoutLignesContainer').innerHTML = '';
+                },
+            });
+        });
+
+        document.getElementById('formActivite').addEventListener('submit', function(e) {
+            e.preventDefault();
+            ajaxSubmit(this, {
+                errorBoxId: 'activiteErrors',
+                onSuccess: () => {
+                    bootstrap.Modal.getInstance(document.getElementById('modalActivite'))?.hide();
+                },
+            });
+        });
+
+        document.getElementById('formRaison').addEventListener('submit', function(e) {
+            e.preventDefault();
+            ajaxSubmit(this, {
+                errorBoxId: 'raisonErrors',
+                onSuccess: () => {
+                    bootstrap.Modal.getInstance(document.getElementById('modalRaison'))?.hide();
+                },
+            });
+        });
+
+        document.getElementById('formObstacles').addEventListener('submit', function(e) {
+            e.preventDefault();
+            ajaxSubmit(this, {
+                onSuccess: () => {
+                    bootstrap.Modal.getInstance(document.getElementById('modalObstacles'))?.hide();
+                },
+            });
+        });
     </script>
 @endsection

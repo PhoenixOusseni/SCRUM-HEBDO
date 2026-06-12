@@ -6,7 +6,7 @@
 
 <div class="row justify-content-center">
     <div class="col-md-6">
-        <div class="card shadow-sm">
+        <div class="card">
             <div class="card-header bg-primary text-white">
                 <h5 class="mb-0">
                     <i class="fas fa-{{ $mode === 'create' ? 'user-plus' : 'user-edit' }} me-2"></i>

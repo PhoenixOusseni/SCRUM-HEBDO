@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
         <h5 class="mb-0"><i class="fas fa-list text-primary me-2"></i>Historique des semaines</h5>
         {{-- @auth
             <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalNouvelleSemaine">
@@ -13,9 +13,9 @@
         @endauth --}}
     </div>
 
-    <div class="card shadow-sm">
+    <div class="card">
         <div class="card-body p-0">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover mb-0 align-middle">
                 <thead class="table-dark">
                     <tr>
                         <th>N° Semaine</th>
